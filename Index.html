@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f3ed">
+    <title>Chill &amp; EatIt | Shop Directory</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --ink: #20241f;
+            --muted: #71776f;
+            --line: #e4e5df;
+            --paper: #fffefa;
+            --canvas: #f5f3ed;
+            --accent: #27664b;
+            --accent-soft: #eaf3ed;
+            --orange: #c57442;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-width: 320px;
+            background: var(--canvas);
+            color: var(--ink);
+        }
+
+        .page {
+            width: min(1480px, 100%);
+            margin: 0 auto;
+            padding: 38px clamp(18px, 4vw, 56px) 52px;
+        }
+
+        .topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 26px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 14px;
+            font-weight: 750;
+            letter-spacing: .02em;
+        }
+
+        .brand-mark {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            border-radius: 11px;
+            background: var(--accent);
+            color: white;
+            font-size: 17px;
+        }
+
+        .save-status {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .intro {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 7px;
+            font-size: clamp(28px, 4vw, 40px);
+            letter-spacing: -.045em;
+            line-height: 1.08;
+        }
+
+        .intro p {
+            max-width: 580px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .shop-count {
+            flex: 0 0 auto;
+            padding: 9px 13px;
+            border: 1px solid #dce4dc;
+            border-radius: 999px;
+            background: #f9fcf8;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 310px;
+            align-items: start;
+            gap: 18px;
+        }
+
+        .plan-card, .details-card {
+            border: 1px solid var(--line);
+            border-radius: 17px;
+            background: var(--paper);
+            box-shadow: 0 8px 28px rgb(31 38 31 / 4%);
+        }
+
+        .plan-card { overflow: hidden; }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 17px 20px;
+            border-bottom: 1px solid #eeeee9;
+        }
+
+        .plan-header strong { font-size: 13px; }
+        .plan-header span { color: var(--muted); font-size: 11px; }
+
+        .plan-wrap {
+            overflow: auto;
+            padding: 12px;
+            background-color: #fbfaf6;
+            background-image: radial-gradient(#e8e6df 0.8px, transparent 0.8px);
+            background-size: 16px 16px;
+        }
+
+        .floor-plan {
+            display: block;
+            width: 100%;
+            min-width: 650px;
+            height: auto;
+            border: 1px solid #d7d7d1;
+            background: #fff;
+        }
+
+        .shop rect {
+            fill: #fffefa;
+            stroke: #343a35;
+            stroke-width: 2.3;
+            vector-effect: non-scaling-stroke;
+            transition: fill .16s ease, stroke .16s ease;
+        }
+
+        .shop.hostel-delivery rect {
+            fill: #fff0ee;
+            stroke: #c62828;
+        }
+
+        .shop:hover rect, .shop:focus rect {
+            fill: #eff6f0;
+            stroke: var(--accent);
+            stroke-width: 3;
+        }
+
+        .shop.hostel-delivery:hover rect, .shop.hostel-delivery:focus rect {
+            fill: #ffe1dd;
+            stroke: #a61f1f;
+        }
+
+        .shop.selected rect {
+            fill: #e5f1e8;
+            stroke: var(--accent);
+            stroke-width: 3.5;
+        }
+
+        .shop.hostel-delivery.selected rect {
+            fill: #ffd5d0;
+            stroke: #a61f1f;
+        }
+
+        .shop { cursor: pointer; outline: none; }
+
+        .shop-number {
+            fill: #73796f;
+            font-size: 11px;
+            font-weight: 700;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .shop-name {
+            fill: #262d27;
+            font-size: 8px;
+            font-weight: 700;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .shop-phone {
+            fill: var(--accent);
+            font-size: 6px;
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .shop.hostel-delivery .shop-number,
+        .shop.hostel-delivery .shop-name,
+        .shop.hostel-delivery .shop-phone {
+            fill: #a61f1f;
+        }
+
+        .anchor-point {
+            fill: #e8e8e2;
+            stroke: #777d75;
+            stroke-width: 1;
+            pointer-events: none;
+        }
+
+        .hall {
+            fill: #f8f6f0;
+            stroke: #b6b8b1;
+            stroke-width: 2;
+        }
+
+        .hall-title {
+            fill: #858a81;
+            font-size: 21px;
+            font-weight: 650;
+            letter-spacing: .02em;
+            text-anchor: middle;
+        }
+
+        .hall-subtitle {
+            fill: #a0a49b;
+            font-size: 9px;
+            letter-spacing: .12em;
+            text-anchor: middle;
+        }
+
+        .details-card {
+            position: sticky;
+            top: 18px;
+            padding: 21px;
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            color: var(--accent);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .details-card h2 {
+            margin: 0 0 7px;
+            font-size: 22px;
+            letter-spacing: -.035em;
+        }
+
+        .hint {
+            margin: 0 0 20px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.55;
+        }
+
+        .field { margin-bottom: 14px; }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #4b514b;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        input {
+            width: 100%;
+            height: 40px;
+            padding: 0 11px;
+            border: 1px solid #dfe1da;
+            border-radius: 9px;
+            outline: none;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+            font-size: 12px;
+        }
+
+        input:focus {
+            border-color: #78a58a;
+            box-shadow: 0 0 0 3px rgb(39 102 75 / 10%);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            margin-top: 19px;
+        }
+
+        button {
+            min-height: 40px;
+            padding: 0 13px;
+            border: 0;
+            border-radius: 9px;
+            cursor: pointer;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .save-button {
+            background: var(--accent);
+            color: white;
+        }
+
+        .save-button:hover { background: #1e553d; }
+
+        .clear-button {
+            border: 1px solid var(--line);
+            background: #fff;
+            color: #626960;
+        }
+
+        .menu-preview {
+            margin-top: 17px;
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--accent-soft);
+            font-size: 11px;
+        }
+
+        .menu-preview span {
+            display: block;
+            margin-bottom: 6px;
+            color: #667269;
+            font-weight: 700;
+        }
+
+        .menu-preview a {
+            color: var(--accent);
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .menu-preview.empty { color: #737a72; }
+
+        .note {
+            margin: 16px 0 0;
+            color: #858a82;
+            font-size: 10px;
+            line-height: 1.55;
+        }
+
+        @media (max-width: 900px) {
+            .workspace { grid-template-columns: 1fr; }
+            .details-card { position: static; }
+        }
+
+        @media (max-width: 560px) {
+            .page { padding: 23px 14px 34px; }
+            .topline { margin-bottom: 22px; }
+            .intro { align-items: start; flex-direction: column; gap: 13px; }
+            .plan-header { align-items: start; flex-direction: column; gap: 5px; }
+            .plan-wrap { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="topline">
+            <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span> CHILL &amp; EATIT</div>
+            <div class="save-status" id="save-status" role="status">Changes are saved on this device</div>
+        </div>
+
+        <section class="intro" aria-labelledby="page-title">
+            <div>
+                <h1 id="page-title">Shop directory</h1>
+                <p>Find your way around the food court. Select a shop on the plan to view its name, contact number and menu card.</p>
+            </div>
+            <div class="shop-count">28 shop spaces</div>
+        </section>
+
+        <div class="workspace">
+            <section class="plan-card" aria-label="Interactive food court floor plan">
+                <div class="plan-header">
+                    <strong>Food court floor plan</strong>
+                    <span>Red shops offer hostel delivery · Select a numbered space for details</span>
+                </div>
+                <div class="plan-wrap">
+                    <svg class="floor-plan" viewBox="0 0 1320 620" role="group" aria-label="Plan with shops 1 through 28">
+                        <rect class="hall" x="407" y="138" width="644" height="138"></rect>
+                        <text class="hall-title" x="729" y="207">Chill &amp; EatIt</text>
+                        <text class="hall-subtitle" x="729" y="229">FOOD COURT</text>
+                        <rect class="hall" x="407" y="317" width="644" height="125"></rect>
+                        <text class="hall-title" x="729" y="379">Chill &amp; EatIt</text>
+                        <text class="hall-subtitle" x="729" y="400">FOOD COURT</text>
+
+                        <g id="shops"></g>
+                    </svg>
+                </div>
+            </section>
+
+            <aside class="details-card" aria-labelledby="details-title">
+                <p class="eyebrow" id="shop-label">Shop 1</p>
+                <h2 id="details-title">Add shop details</h2>
+                <p class="hint">Fill in the details visitors need. Your changes are saved in this browser.</p>
+                <form id="shop-form">
+                    <div class="field">
+                        <label for="shop-name-input">Shop name</label>
+                        <input id="shop-name-input" name="name" type="text" maxlength="50" placeholder="e.g. The Spice Kitchen">
+                    </div>
+                    <div class="field">
+                        <label for="shop-phone-input">Contact number</label>
+                        <input id="shop-phone-input" name="phone" type="tel" maxlength="60" placeholder="      ">
+                    </div>
+                    <div class="button-row">
+                        <button class="save-button" type="submit">Save shop details</button>
+                        <button class="clear-button" id="clear-button" type="button">Clear</button>
+                    </div>
+                </form>
+                <div class="menu-preview" id="menu-preview" hidden></div>
+                <p class="note">Details are stored locally in this browser and are not published or shared with other devices.</p>
+            </aside>
+        </div>
+    </main>
+
+    <script>
+        const storageKey = "chill-eatit-shop-directory-v3";
+        const previousStorageKey = "chill-eatit-shop-directory-v2";
+        const developerMenuLinks = {
+            // Add or update menu URLs here; visitors cannot edit these links.
+        };
+        const defaultShopNames = {
+            1: "Sunny Days",
+            2: "SR Chat Corner",
+            3: "Amul",
+            4: "Latha News Mart",
+            5: "Fresh Cafe",
+            6: "New Classic Chettinadu",
+            7: "Evergreen",
+            8: "Juice Shop",
+            9: "Shake&Dessert",
+            10: "Butty",
+            11: "Karrupatti Cafe",
+            12: "SVS Andhra Mess",
+            13: "Sharjah Juice Corner",
+            14: "Sohana Biryani House",
+            15: "Chocomans",
+            16: "Google Foodpark",
+            17: "Butty",
+            18: "Masaledar",
+            19: "Friends Spot",
+            20: "The South Cafe",
+            21: "Sams Restaurant",
+            22: "Subway",
+            23: "Queens",
+            24: "Butty",
+            25: "Classic Biryani",
+            26: "Ambi Anniyan",
+            28: "foodking"
+        };
+        const defaultShopPhones = {
+            2: "7845355271, 8248238163",
+            6: "9894211203",
+            7: "9500508071, 9500509871, 7305333052",
+            10: "7904142686",
+            14: "8972068868, 6379887543",
+            16: "9789040816, 8056130228",
+            17: "7904142686",
+            18: "9102770111",
+            19: "8778081146",
+            24: "7904142686",
+            23: "7200794701, 8122394701",
+            25: "7358205870, 8056129893"
+        };
+        const hostelDeliveryShopIds = new Set([2, 6, 7, 10, 14, 16, 17, 18, 19, 23, 24, 25]);
+        const shopPositions = {
+            1: [117, 520, 204, 79], 2: [7, 503, 83, 74], 3: [7, 359, 77, 98],
+            4: [7, 257, 77, 101], 5: [7, 109, 84, 98], 6: [7, 12, 83, 96],
+            7: [91, 12, 75, 96], 8: [167, 12, 77, 96], 9: [245, 12, 77, 96],
+            10: [323, 12, 65, 96], 11: [389, 12, 39, 84], 12: [429, 12, 122, 67],
+            13: [552, 12, 117, 67], 14: [669, 12, 77, 67], 15: [747, 12, 86, 67],
+            16: [834, 12, 85, 67], 17: [920, 12, 87, 67], 18: [1008, 12, 97, 67],
+            19: [1106, 12, 103, 67], 20: [1224, 129, 88, 68], 21: [1120, 129, 104, 127],
+            22: [1120, 257, 192, 148], 23: [1188, 407, 124, 101], 24: [1092, 510, 220, 89],
+            25: [887, 510, 204, 89], 26: [686, 510, 200, 89], 27: [601, 510, 84, 89],
+            28: [407, 510, 193, 89]
+        };
+        const shopsRoot = document.getElementById("shops");
+        const form = document.getElementById("shop-form");
+        const nameInput = document.getElementById("shop-name-input");
+        const phoneInput = document.getElementById("shop-phone-input");
+        const status = document.getElementById("save-status");
+        const menuPreview = document.getElementById("menu-preview");
+        let selectedShop = 1;
+        let shopData = Object.fromEntries(
+            Object.entries(defaultShopNames).map(([id, name]) => [
+                id,
+                { name, phone: defaultShopPhones[id] || "" }
+            ])
+        );
+
+        try {
+            const currentData = localStorage.getItem(storageKey);
+            const isMigrating = !currentData;
+            const savedData = currentData || localStorage.getItem(previousStorageKey);
+            if (savedData) {
+                const parsedData = JSON.parse(savedData);
+                Object.entries(parsedData).forEach(([id, data]) => {
+                    if (shopPositions[id] && data && typeof data === "object") {
+                        shopData[id] = isMigrating
+                                ? {
+                                    name: defaultShopNames[id] || "",
+                                    phone: typeof data.phone === "string" && data.phone
+                                        ? data.phone
+                                        : defaultShopPhones[id] || ""
+                                }
+                                : {
+                                    name: typeof data.name === "string" ? data.name : defaultShopNames[id] || "",
+                                    phone: typeof data.phone === "string" && data.phone
+                                        ? data.phone
+                                        : defaultShopPhones[id] || ""
+                                };
+                    }
+                });
+                if (isMigrating) localStorage.setItem(storageKey, JSON.stringify(shopData));
+            }
+        } catch (error) {
+            status.textContent = "Could not load saved shop details";
+        }
+
+        function createSvgElement(tag, attributes) {
+            const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
+            Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+            return element;
+        }
+
+        function getLabel(name, maxLength) {
+            return name.length > maxLength ? name.slice(0, maxLength - 1) + "…" : name;
+        }
+
+        function renderShops() {
+            shopsRoot.replaceChildren();
+            Object.entries(shopPositions).forEach(([id, bounds]) => {
+                const [x, y, width, height] = bounds;
+                const data = shopData[id] || {
+                    name: defaultShopNames[id] || "",
+                    phone: defaultShopPhones[id] || ""
+                };
+                const group = createSvgElement("g", {
+                    class: `shop${hostelDeliveryShopIds.has(Number(id)) ? " hostel-delivery" : ""}${Number(id) === selectedShop ? " selected" : ""}`,
+                    role: "button",
+                    tabindex: "0",
+                    "aria-label": `Shop ${id}${data.name ? `, ${data.name}` : ", add details"}${hostelDeliveryShopIds.has(Number(id)) ? ", offers hostel delivery" : ""}`,
+                    "aria-pressed": Number(id) === selectedShop ? "true" : "false",
+                    "data-shop-id": id
+                });
+                group.appendChild(createSvgElement("rect", { x, y, width, height, rx: "1" }));
+
+                const labelY = y + height * (height < 75 ? .56 : .48);
+                const number = createSvgElement("text", { x: x + width / 2, y: labelY, class: "shop-number" });
+                number.textContent = id;
+                group.appendChild(number);
+
+                if (data.name) {
+                    const shopName = createSvgElement("text", {
+                        x: x + width / 2,
+                        y: labelY + 11,
+                        class: "shop-name"
+                    });
+                    shopName.textContent = getLabel(data.name, Math.max(7, Math.floor(width / 6)));
+                    group.appendChild(shopName);
+                }
+
+                if (data.phone && width > 60) {
+                    const phone = createSvgElement("text", {
+                        x: x + width / 2,
+                        y: y + height - 8,
+                        class: "shop-phone"
+                    });
+                    phone.textContent = getLabel(data.phone, Math.max(9, Math.floor(width / 5)));
+                    group.appendChild(phone);
+                }
+
+                group.appendChild(createSvgElement("rect", {
+                    x: x + width * .26,
+                    y: y + height - 13,
+                    width: width * .48,
+                    height: 5,
+                    rx: "1",
+                    class: "anchor-point"
+                }));
+                group.addEventListener("click", () => selectShop(Number(id)));
+                group.addEventListener("keydown", event => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        selectShop(Number(id));
+                    }
+                });
+                shopsRoot.appendChild(group);
+            });
+        }
+
+        function updateMenuPreview(link) {
+            menuPreview.replaceChildren();
+            if (!link) {
+                menuPreview.hidden = true;
+                return;
+            }
+
+            menuPreview.hidden = false;
+            const caption = document.createElement("span");
+            caption.textContent = "MENU CARD";
+            const anchor = document.createElement("a");
+            anchor.href = link;
+            anchor.target = "_blank";
+            anchor.rel = "noopener noreferrer";
+            anchor.textContent = "Open menu card ↗";
+            menuPreview.className = "menu-preview";
+            menuPreview.append(caption, anchor);
+        }
+
+        function selectShop(id) {
+            selectedShop = id;
+            const data = shopData[id] || {
+                name: defaultShopNames[id] || "",
+                phone: defaultShopPhones[id] || ""
+            };
+            document.getElementById("shop-label").textContent = `Shop ${id}`;
+            document.getElementById("details-title").textContent = data.name || "Add shop details";
+            nameInput.value = data.name || "";
+            phoneInput.value = data.phone || "";
+            updateMenuPreview(developerMenuLinks[id] || "");
+            renderShops();
+        }
+
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
+
+            if (name || phone) shopData[selectedShop] = { name, phone };
+            else delete shopData[selectedShop];
+
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(shopData));
+                status.textContent = "Changes are saved on this device";
+            } catch (error) {
+                status.textContent = "Could not save changes in this browser";
+                return;
+            }
+            selectShop(selectedShop);
+        });
+
+        document.getElementById("clear-button").addEventListener("click", () => {
+            nameInput.value = "";
+            phoneInput.value = "";
+            delete shopData[selectedShop];
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(shopData));
+                status.textContent = "Changes are saved on this device";
+            } catch (error) {
+                status.textContent = "Could not save changes in this browser";
+            }
+            selectShop(selectedShop);
+        });
+
+        renderShops();
+        selectShop(selectedShop);
+    </script>
+</body>
+</html>
